@@ -1,12 +1,14 @@
 package com.bridgelabz.junit;
-//Uc10
+//Uc11
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.junit.Test;
 import com.bridgelabz.employeepayroll.EmployeePayrollData;
+import com.bridgelabz.employeepayroll.EmployeePayrollDbService;
 import com.bridgelabz.employeepayroll.EmployeePayrollService;
 import com.bridgelabz.employeepayroll.EmployeePayrollService.IOService;
 public class EmployeePayrollServiceDbTest {
@@ -70,6 +72,16 @@ public class EmployeePayrollServiceDbTest {
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 		employeePayrollService.updateEmployeeSalary(8,"Shyam",50002.00);
 		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Shyam");
+		assertTrue(result);
+	}
+	@Test
+	public void givenNewEmployeeWithDept_whenAdded_shouldSyncWithDb() {
+		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		ArrayList<String> department=new ArrayList<>();
+		department.add("Sales");
+		employeePayrollService.addEmployeeToPayrollMultipleTable("Samiksha",5000.0,LocalDate.now(),"F",department);
+		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Samiksha");
 		assertTrue(result);
 	}
 }

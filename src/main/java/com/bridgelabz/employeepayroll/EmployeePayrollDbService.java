@@ -1,5 +1,5 @@
 package com.bridgelabz.employeepayroll;
-//Uc10
+//Uc11
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -63,9 +63,11 @@ public class EmployeePayrollDbService {
 		try (Connection connection=this.getConnection();){
 			Statement statement=connection.createStatement();
 			ResultSet resultSet=statement.executeQuery(sql);
+			String gender;
+			Double salary;
 			while(resultSet.next()) {
-				String gender=resultSet.getString("gender");
-				Double salary=resultSet.getDouble("AVG(salary)");
+				gender=resultSet.getString("gender");
+				salary=resultSet.getDouble("AVG(salary)");
 				genderToAverageSalaryMap.put(gender, salary);
 			}
 		} catch(SQLException e) {
@@ -138,7 +140,7 @@ public class EmployeePayrollDbService {
 		String name = null;
 		double salary = 0;
 		LocalDate startDate = null;
-		String dept[]=new String[10];
+		ArrayList<String> dept=new ArrayList<String>();
 		try {
 			while(resultSet.next()) {
 				id=resultSet.getInt("id");
@@ -150,10 +152,8 @@ public class EmployeePayrollDbService {
 			e.printStackTrace();
 		}
 		try {
-			int i=0;
-			while(resultSet2.next() && i<5) {
-				dept[i]=resultSet2.getString(1);
-				i++;
+			while(resultSet2.next()) {
+				dept.add(resultSet2.getString(1));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
@@ -313,5 +313,97 @@ public class EmployeePayrollDbService {
 			}
 		}
 		return employeePayrollData;
+	}
+	public EmployeePayrollData addEmployeePayrollMultipleTable(String name, double salary, LocalDate startDate,
+            					String gender,ArrayList<String> dept) {
+		int employeeId=-1;
+		Connection connection=null;
+		EmployeePayrollData employeePayrollData=null;
+		try {
+			connection=this.getConnection();
+			connection.setAutoCommit(false);
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		try(Statement statement=connection.createStatement()) {
+			String sql=String.format("INSERT INTO employeepayroll(name,gender,salary,start)"+
+					"VALUES('%s','%s','%s','%s');",name,gender,salary,Date.valueOf(startDate));
+			int rowAffected=statement.executeUpdate(sql,statement.RETURN_GENERATED_KEYS);
+			if(rowAffected==1) {
+				ResultSet resultSet=statement.getGeneratedKeys();
+				if(resultSet.next()) {
+					employeeId=resultSet.getInt(1);
+				}
+			}
+		} catch(SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+				return employeePayrollData;
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		try(Statement statement=connection.createStatement()) {
+			double deductions=salary*0.2;
+			double taxablePay=salary-deductions;
+			double tax=taxablePay*0.1;
+			double netPay=salary-tax;
+			String sql=String.format("INSERT INTO payroll_details"+
+					"(employee_id,basic_pay,deductions,taxable_pay,tax,net_pay) VALUES"+
+					"(%s,%s,%s,%s,%s,%s);",employeeId,salary,deductions,taxablePay,tax,netPay);
+			int rowAffected=statement.executeUpdate(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+				return employeePayrollData;
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		} 
+		int deptId=0;
+		int rowAffected=0;
+			for(String deptName:dept) {
+				try(Statement statement=connection.createStatement()) {
+					String sql=String.format("select dept_id from department where dept_name='%s';",deptName);
+					ResultSet resultSet=statement.executeQuery(sql);
+					if(resultSet.next()) {
+						deptId=resultSet.getInt("dept_id");
+						System.out.println(deptId);
+					}
+					String sql2=String.format("INSERT INTO emp_dept_relation"+
+							"(emp_id,dept_id) VALUES"+
+							"(%s,%s);",employeeId,deptId);
+					rowAffected=statement.executeUpdate(sql2);
+				} catch(SQLException e) {
+					e.printStackTrace();
+					try {
+						connection.rollback();
+						return employeePayrollData;
+					} catch (SQLException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+			if(rowAffected==1) {
+				employeePayrollData=new EmployeePayrollData(employeeId,name,salary,startDate,dept);
+			}
+			try {
+				connection.commit();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+			finally {
+				if(connection!=null) {
+					try {
+						connection.close();
+					} catch (SQLException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		return employeePayrollData;
+		
 	}
 }

@@ -1,6 +1,7 @@
 package com.bridgelabz.employeepayroll;
 import java.time.LocalDate;
-//Uc10
+import java.util.ArrayList;
+//Uc11
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -76,6 +77,9 @@ public class EmployeePayrollService {
 	}
 	public void addEmployeeToPayrollMultipleTable(String name, double salary, LocalDate startDate, String gender) {
 		employeePayrollList.add(employeePayrollDbService.addEmployeePayrollMultipleTable(name,salary,startDate,gender));
+	}
+	public void addEmployeeToPayrollMultipleTable(String name, double salary, LocalDate startDate, String gender,ArrayList<String> dept) {
+		employeePayrollList.add(employeePayrollDbService.addEmployeePayrollMultipleTable(name,salary,startDate,gender,dept));
 	}
 	private EmployeePayrollData getEmployeePayrollData(String name) {
 		EmployeePayrollData employeePayrollData;

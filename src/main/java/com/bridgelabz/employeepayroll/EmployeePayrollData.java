@@ -1,11 +1,12 @@
 package com.bridgelabz.employeepayroll;
 import java.time.LocalDate;
+import java.util.ArrayList;
 public class EmployeePayrollData {
 	public Integer id;
 	public String name;
 	public Double salary;
 	public LocalDate startDate;
-	public String depart[]=new String[10];
+	public ArrayList<String> depart=new ArrayList<String>();
 	public EmployeePayrollData(Integer id,String name,Double salary) {
 		this.id=id;
 		this.name=name;
@@ -15,13 +16,20 @@ public class EmployeePayrollData {
 		this(id,name,salary);
 		this.startDate=startDate;
 	}
-	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate,String depart[]) {
+	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate,ArrayList depart) {
 		this(id,name,salary,startDate);
 		this.depart=depart;
 	}
+	public StringBuffer printArray() {
+		StringBuffer sb=new StringBuffer();
+		for(String s:depart) {
+			sb.append(s+" ");
+		}
+		return sb;
+	}
 	@Override
 	public String toString() {
-		return "id="+id+", Name='"+name+'\''+", Salary="+salary+"Dept="+depart[0];
+		return "id="+id+", Name='"+name+'\''+", Salary="+salary+" Dept="+printArray();
 	}
 	@Override
 	public boolean equals(Object obj) {
