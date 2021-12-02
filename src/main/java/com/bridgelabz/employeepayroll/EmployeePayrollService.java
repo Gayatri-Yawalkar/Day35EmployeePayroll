@@ -1,7 +1,7 @@
 package com.bridgelabz.employeepayroll;
 import java.time.LocalDate;
 import java.util.ArrayList;
-//Uc11
+//Uc12
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -103,5 +103,13 @@ public class EmployeePayrollService {
 			return new EmployeePayrollFileIOService().countEntries();
 		}
 		return 0;
+	}
+	public int removeEmployee(int id,String name) {
+		int result=employeePayrollDbService.removeEmployee(id);
+		this.getEmployeePayrollData(name).isActive=false;
+		if(result==1) {
+			System.out.println("Employee is successfully Removed");
+		}
+		return result;
 	}
 }

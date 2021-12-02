@@ -1,5 +1,5 @@
 package com.bridgelabz.employeepayroll;
-//Uc11
+//Uc12
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -387,7 +387,7 @@ public class EmployeePayrollDbService {
 				}
 			}
 			if(rowAffected==1) {
-				employeePayrollData=new EmployeePayrollData(employeeId,name,salary,startDate,dept);
+				employeePayrollData=new EmployeePayrollData(employeeId,name,salary,startDate,dept,true);
 			}
 			try {
 				connection.commit();
@@ -404,6 +404,15 @@ public class EmployeePayrollDbService {
 				}
 			}
 		return employeePayrollData;
-		
+	}
+	public int removeEmployee(int id) {
+		String sql=String.format("update employeepayroll set is_active=%s where id='%s';",0,id);
+		try (Connection connection=this.getConnection();){
+			Statement statement=connection.createStatement();
+			return statement.executeUpdate(sql);
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return 0;
 	}
 }

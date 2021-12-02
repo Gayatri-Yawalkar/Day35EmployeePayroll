@@ -7,6 +7,7 @@ public class EmployeePayrollData {
 	public Double salary;
 	public LocalDate startDate;
 	public ArrayList<String> depart=new ArrayList<String>();
+	public Boolean isActive;
 	public EmployeePayrollData(Integer id,String name,Double salary) {
 		this.id=id;
 		this.name=name;
@@ -19,6 +20,10 @@ public class EmployeePayrollData {
 	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate,ArrayList depart) {
 		this(id,name,salary,startDate);
 		this.depart=depart;
+	}
+	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate,ArrayList depart,Boolean isActive) {
+		this(id,name,salary,startDate,depart);
+		this.isActive=isActive;
 	}
 	public StringBuffer printArray() {
 		StringBuffer sb=new StringBuffer();
