@@ -1,5 +1,5 @@
 package com.bridgelabz.junit;
-//Uc7
+//Uc8
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
@@ -44,8 +44,16 @@ public class EmployeePayrollServiceDbTest {
 	public void givenNewEmployee_whenAdded_shouldSyncWithDb() {
 		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.addEmployeeToPayroll("Samiksha",5000.0,LocalDate.now(),"F");
+		employeePayrollService.addEmployeeToPayrollSingleTable("Samiksha",5000.0,LocalDate.now(),"F");
 		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Samiksha");
+		assertTrue(result);
+	}
+	@Test
+	public void givenNewEmployee_whenAdded_shouldAddedToTableAndSyncWithDb() {
+		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		employeePayrollService.addEmployeeToPayrollMultipleTable("Ram",12000.0,LocalDate.now(),"M");
+		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Ram");
 		assertTrue(result);
 	}
 }

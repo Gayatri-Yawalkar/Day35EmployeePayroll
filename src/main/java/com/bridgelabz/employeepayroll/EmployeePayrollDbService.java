@@ -1,5 +1,5 @@
 package com.bridgelabz.employeepayroll;
-//Uc7
+//Uc8
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -43,7 +43,7 @@ public class EmployeePayrollDbService {
 	}
 	public List<EmployeePayrollData> getEmployeeDateRange(LocalDate startDate, LocalDate endDate) {
 		String sql=String.format("SELECT * FROM employeepayroll WHERE start BETWEEN '%s' AND '%s';",
-				       Date.valueOf(startDate),Date.valueOf(endDate));
+				      Date.valueOf(startDate),Date.valueOf(endDate));
 		return this.getEmployeePayrollDataUsingDB(sql);
 	}
 	public Map<String,Double> getAverageSalaryByGender(){
@@ -72,7 +72,6 @@ public class EmployeePayrollDbService {
 		System.out.println("Connection is successfull");
 		return con;
 	}
-	
 	private List<EmployeePayrollData> getEmployeePayrollDataUsingDB(String sql) {
 		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
 		try (Connection connection=this.getConnection();){
@@ -107,7 +106,6 @@ public class EmployeePayrollDbService {
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	public int updateSalary(String name,double salary) {
 		String sql=String.format("update employeepayroll set salary=%.2f where name='%s';",salary,name);
@@ -119,11 +117,11 @@ public class EmployeePayrollDbService {
 		}
 		return 0;
 	}
-	public EmployeePayrollData addEmployeePayroll(String name, double salary, LocalDate startDate, String gender) {
+	public EmployeePayrollData addEmployeePayrollSingleTable(String name, double salary, LocalDate startDate, String gender) {
 		int employeeId=-1;
 		EmployeePayrollData employeePayrollData=null;
 		String sql=String.format("INSERT INTO employeepayroll(name,gender,salary,start)"+
-				      "VALUES('%s','%s','%s','%s');",name,gender,salary,Date.valueOf(startDate));
+				                  "VALUES('%s','%s','%s','%s');",name,gender,salary,Date.valueOf(startDate));
 		try(Connection connection=this.getConnection()) {
 			Statement statement=connection.createStatement();
 			int rowAffected=statement.executeUpdate(sql,statement.RETURN_GENERATED_KEYS);
@@ -135,6 +133,47 @@ public class EmployeePayrollDbService {
 			}
 			employeePayrollData=new EmployeePayrollData(employeeId,name,salary,startDate);
 		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayrollData;
+	}
+	public EmployeePayrollData addEmployeePayrollMultipleTable(String name, double salary, LocalDate startDate,
+			                                                                String gender) {
+		int employeeId=-1;
+		Connection connection=null;
+		EmployeePayrollData employeePayrollData=null;
+		try {
+			connection=this.getConnection();
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		try(Statement statement=connection.createStatement()) {
+			String sql=String.format("INSERT INTO employeepayroll(name,gender,salary,start)"+
+	                "VALUES('%s','%s','%s','%s');",name,gender,salary,Date.valueOf(startDate));
+			int rowAffected=statement.executeUpdate(sql,statement.RETURN_GENERATED_KEYS);
+			if(rowAffected==1) {
+				ResultSet resultSet=statement.getGeneratedKeys();
+				if(resultSet.next()) {
+					employeeId=resultSet.getInt(1);
+				}
+			}
+			employeePayrollData=new EmployeePayrollData(employeeId,name,salary,startDate);
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		try(Statement statement=connection.createStatement()) {
+			double deductions=salary*0.2;
+			double taxablePay=salary-deductions;
+			double tax=taxablePay*0.1;
+			double netPay=salary-tax;
+			String sql=String.format("INSERT INTO payroll_details"+
+					     "(employee_id,basic_pay,deductions,taxable_pay,tax,net_pay) VALUES"+
+					     "(%s,%s,%s,%s,%s,%s);",employeeId,salary,deductions,taxablePay,tax,netPay);
+			int rowAffected=statement.executeUpdate(sql);
+			if(rowAffected==1) {
+				employeePayrollData=new EmployeePayrollData(employeeId,name,salary,startDate);
+			}
+		} catch (SQLException e) {
 			e.printStackTrace();
 		}
 		return employeePayrollData;

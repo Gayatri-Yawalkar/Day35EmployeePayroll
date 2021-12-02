@@ -1,6 +1,6 @@
 package com.bridgelabz.employeepayroll;
 import java.time.LocalDate;
-//Uc7
+//Uc8
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -40,8 +40,7 @@ public class EmployeePayrollService {
 		}
 		return null;
 	}
-	public List<EmployeePayrollData> readEmployeePayrollForDateRange(IOService ioService, LocalDate startDate,
-							            LocalDate endDate) {
+	public List<EmployeePayrollData> readEmployeePayrollForDateRange(IOService ioService, LocalDate startDate,LocalDate endDate) {
 		if(ioService.equals(ioService.DB_IO)) {
 			return employeePayrollDbService.getEmployeeDateRange(startDate,endDate);
 		}
@@ -63,8 +62,11 @@ public class EmployeePayrollService {
 			employeePayrollData.salary=salary;
 		}
 	}
-	public void addEmployeeToPayroll(String name, double salary, LocalDate startDate, String gender) {
-		employeePayrollList.add(employeePayrollDbService.addEmployeePayroll(name,salary,startDate,gender));
+	public void addEmployeeToPayrollSingleTable(String name, double salary, LocalDate startDate, String gender) {
+		employeePayrollList.add(employeePayrollDbService.addEmployeePayrollSingleTable(name,salary,startDate,gender));
+	}
+	public void addEmployeeToPayrollMultipleTable(String name, double salary, LocalDate startDate, String gender) {
+		employeePayrollList.add(employeePayrollDbService.addEmployeePayrollMultipleTable(name,salary,startDate,gender));
 	}
 	private EmployeePayrollData getEmployeePayrollData(String name) {
 		EmployeePayrollData employeePayrollData;
