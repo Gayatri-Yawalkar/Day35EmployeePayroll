@@ -5,6 +5,7 @@ public class EmployeePayrollData {
 	public String name;
 	public Double salary;
 	public LocalDate startDate;
+	public Integer depart[]=new Integer[10];
 	public EmployeePayrollData(Integer id,String name,Double salary) {
 		this.id=id;
 		this.name=name;
@@ -13,6 +14,10 @@ public class EmployeePayrollData {
 	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate) {
 		this(id,name,salary);
 		this.startDate=startDate;
+	}
+	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate,Integer depart[]) {
+		this(id,name,salary,startDate);
+		this.depart=depart;
 	}
 	@Override
 	public String toString() {
