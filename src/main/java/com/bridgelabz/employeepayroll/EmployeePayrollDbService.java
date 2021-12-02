@@ -1,5 +1,5 @@
 package com.bridgelabz.employeepayroll;
-//Uc9
+//Uc10
 import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
@@ -41,6 +41,17 @@ public class EmployeePayrollDbService {
 		}
 		return employeePayrollList;
 	}
+	private List<EmployeePayrollData> getEmployeePayrollDataUsingDB(String sql) {
+		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
+		try (Connection connection=this.getConnection();){
+			Statement statement=connection.createStatement();
+			ResultSet resultSet=statement.executeQuery(sql);
+			employeePayrollList=this.getEmployeePayrollData(resultSet);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return employeePayrollList;
+	}
 	public List<EmployeePayrollData> getEmployeeDateRange(LocalDate startDate, LocalDate endDate) {
 		String sql=String.format("SELECT * FROM employeepayroll WHERE start BETWEEN '%s' AND '%s';",
 								  Date.valueOf(startDate),Date.valueOf(endDate));
@@ -73,12 +84,30 @@ public class EmployeePayrollDbService {
 		return con;
 	}
 	
-	private List<EmployeePayrollData> getEmployeePayrollDataUsingDB(String sql) {
+	public List<EmployeePayrollData> getEmployeePayrollDataUsingDB(int id) {
 		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
-		try (Connection connection=this.getConnection();){
+		Connection connection=null;
+		ResultSet resultSet = null,resultSet2 = null;
+		try {
+			connection=this.getConnection();
+		} catch(SQLException e) {
+			e.printStackTrace();
+		}
+		try {
+			String sql="select * from employeepayroll where id="+id+";";
 			Statement statement=connection.createStatement();
-			ResultSet resultSet=statement.executeQuery(sql);
-			employeePayrollList=this.getEmployeePayrollData(resultSet);
+			resultSet=statement.executeQuery(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		try {
+			String sql2="select department.dept_name "
+					+ "from employeepayroll join emp_dept_relation "
+					+ "on employeepayroll.id=emp_dept_relation.emp_id "
+					+ "join department on department.dept_id=emp_dept_relation.dept_id;";
+			Statement statement=connection.createStatement();
+			resultSet2=statement.executeQuery(sql2);
+			employeePayrollList=this.getEmployeePayrollData(resultSet,resultSet2);
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
@@ -86,17 +115,50 @@ public class EmployeePayrollDbService {
 	}
 	private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet) {
 		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
+		int id;
+		String name;
+		double salary;
+		LocalDate startDate;
 		try {
 			while(resultSet.next()) {
-				int id=resultSet.getInt("id");
-				String name=resultSet.getString("name");
-				double salary=resultSet.getDouble("salary");
-				LocalDate startDate=resultSet.getDate("start").toLocalDate();
+				id=resultSet.getInt("id");
+				name=resultSet.getString("name");
+				salary=resultSet.getDouble("salary");
+				startDate=resultSet.getDate("start").toLocalDate();
 				employeePayrollList.add(new EmployeePayrollData(id, name,salary,startDate));
 			}
 		} catch (SQLException e) {
 			e.printStackTrace();
 		}
+		return employeePayrollList;
+	}
+	private List<EmployeePayrollData> getEmployeePayrollData(ResultSet resultSet,ResultSet resultSet2) {
+		List<EmployeePayrollData> employeePayrollList=new ArrayList<>();
+		int id = 0;
+		String name = null;
+		double salary = 0;
+		LocalDate startDate = null;
+		String dept[]=new String[10];
+		try {
+			while(resultSet.next()) {
+				id=resultSet.getInt("id");
+				name=resultSet.getString("name");
+				salary=resultSet.getDouble("salary");
+				startDate=resultSet.getDate("start").toLocalDate();
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		try {
+			int i=0;
+			while(resultSet2.next() && i<5) {
+				dept[i]=resultSet2.getString(1);
+				i++;
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		employeePayrollList.add(new EmployeePayrollData(id, name,salary,startDate,dept));
 		return employeePayrollList;
 	}
 	private void prepareStatementForEmployeeData() {
@@ -108,15 +170,61 @@ public class EmployeePayrollDbService {
 			e.printStackTrace();
 		}
 	}
-	public int updateSalary(String name,double salary) {
-		String sql=String.format("update employeepayroll set salary=%.2f where name='%s';",salary,name);
-		try (Connection connection=this.getConnection();){
-			Statement statement=connection.createStatement();
-			return statement.executeUpdate(sql);
+	public int updateSalary(int id,double salary) {
+		int rowAffected=-1;
+		Connection connection=null;
+		try {
+			connection=this.getConnection();
+			connection.setAutoCommit(false);
 		} catch(SQLException e) {
 			e.printStackTrace();
 		}
-		return 0;
+		try(Statement statement=connection.createStatement()) {
+			String sql=String.format("update employeepayroll set salary=%.2f where id='%s';",salary,id);
+			rowAffected=statement.executeUpdate(sql);
+		} catch(SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+				return rowAffected;
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		}
+		try(Statement statement=connection.createStatement()) {
+			double deductions=salary*0.2;
+			double taxablePay=salary-deductions;
+			double tax=taxablePay*0.1;
+			double netPay=salary-tax;
+			String sql=String.format("update payroll_details set basic_pay=%s,deductions=%.2f,taxable_pay=%s,tax=%s,net_pay=%s where employee_id='%s';",salary,deductions,taxablePay,tax,netPay,id);
+			rowAffected=statement.executeUpdate(sql);
+			if(rowAffected==1) {
+				System.out.println("Update Success");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			try {
+				connection.rollback();
+				return rowAffected;
+			} catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+		} 
+		try {
+			connection.commit();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		finally {
+			if(connection!=null) {
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		return rowAffected;
 	}
 	public EmployeePayrollData addEmployeePayrollSingleTable(String name, double salary, LocalDate startDate, String gender) {
 		int employeeId=-1;

@@ -1,5 +1,5 @@
 package com.bridgelabz.junit;
-//Uc9
+//Uc10
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import java.time.LocalDate;
@@ -14,13 +14,14 @@ public class EmployeePayrollServiceDbTest {
 	public void givenEmployeePayrollDb_whenRetrived_shouldMatchEmployeeCount() {
 		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
 		List<EmployeePayrollData> employeePayrollData=employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		assertEquals(3,employeePayrollData.size());
+		System.out.println(employeePayrollData);
+		assertEquals(9,employeePayrollData.size());
 	}
 	@Test
 	public void givenNewSalaryForEmployee_whenUpdated_shouldSyncWithDb() {
 		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
-		employeePayrollService.updateEmployeeSalary("Gayatri",50002.00);
+		employeePayrollService.updateEmployeeSalary(1,"Gayatri",50002.00);
 		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Gayatri");
 		assertTrue(result);
 	}
@@ -53,6 +54,21 @@ public class EmployeePayrollServiceDbTest {
 		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
 		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
 		employeePayrollService.addEmployeeToPayrollMultipleTable("Shyam",12000.0,LocalDate.now(),"M");
+		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Shyam");
+		assertTrue(result);
+	}
+	@Test
+	public void givenEmployeePayrollDb_whenSpecificRecordRetrived_shouldMatchEmployeeCount() {
+		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
+		List<EmployeePayrollData> employeePayrollData=employeePayrollService.readEmployeePayrollData(IOService.DB_IO,1);
+		System.out.println(employeePayrollData);
+		assertEquals(1,employeePayrollData.size());
+	}
+	@Test
+	public void givenNewSalaryForSpecificEmployee_whenUpdated_shouldSyncWithDb() {
+		EmployeePayrollService employeePayrollService=new EmployeePayrollService();
+		employeePayrollService.readEmployeePayrollData(IOService.DB_IO);
+		employeePayrollService.updateEmployeeSalary(8,"Shyam",50002.00);
 		boolean result=employeePayrollService.checkEmployeePayrollSyncWithDb("Shyam");
 		assertTrue(result);
 	}

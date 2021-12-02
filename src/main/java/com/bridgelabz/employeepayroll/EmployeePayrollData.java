@@ -5,7 +5,7 @@ public class EmployeePayrollData {
 	public String name;
 	public Double salary;
 	public LocalDate startDate;
-	public Integer depart[]=new Integer[10];
+	public String depart[]=new String[10];
 	public EmployeePayrollData(Integer id,String name,Double salary) {
 		this.id=id;
 		this.name=name;
@@ -15,13 +15,13 @@ public class EmployeePayrollData {
 		this(id,name,salary);
 		this.startDate=startDate;
 	}
-	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate,Integer depart[]) {
+	public EmployeePayrollData(Integer id,String name,Double salary,LocalDate startDate,String depart[]) {
 		this(id,name,salary,startDate);
 		this.depart=depart;
 	}
 	@Override
 	public String toString() {
-		return "id="+id+", Name='"+name+'\''+", Salary="+salary;
+		return "id="+id+", Name='"+name+'\''+", Salary="+salary+"Dept="+depart[0];
 	}
 	@Override
 	public boolean equals(Object obj) {
